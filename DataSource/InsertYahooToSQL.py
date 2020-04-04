@@ -19,7 +19,7 @@ end = dt.datetime.today()
 #daily= 1; monthly= 2; quaterly= 3; half-yearly= 4; yearly= 5; 
 #2 years= 6; 3 years= 7; 5 years= 8; weekly = 9; forth night= 10
 
-interval = 7
+interval = 1
 
 if interval == 1:
     start = start + relativedelta(days=-1)
