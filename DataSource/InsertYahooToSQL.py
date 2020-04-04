@@ -11,7 +11,7 @@ conn = pyodbc.connect('Driver={ODBC Driver 17 for SQL Server};'
                       'Database=ShareData;'
                       'UID=sa; PWD=varun@17;')
 
-query = "SELECT top 50 [Id],[Symbol]+'.NS' as Symbol FROM [dbo].[Company] (nolock) where Series ='EQ' and Id not in (select distinct CompanyId from CompanyDailyData) order by 2"
+query = "SELECT [Id],[Symbol]+'.NS' as Symbol FROM [dbo].[Company] (nolock) where Series ='EQ' and Id in (select distinct CompanyId from LogTable where InsertDate != GETDATE()) order by 2"
 
 start = dt.datetime.today()
 end = dt.datetime.today()
@@ -58,15 +58,19 @@ try:
         data.to_sql(name='CompanyDailyData', con=engine, if_exists = 'append', index=False)
 
     for row_index,row in df[['Id','Symbol']].iterrows():
-        print(row['Id'])
-        df = GetData(row['Symbol'])
-        df['CompanyId'] = row['Id']
-        df['Returns'] = df['Close'].pct_change(1)
-        df['Cumulative Return'] = (1 + df['Returns']).cumprod()
-        df['Date'] = df.index 
-        InsertData(df)
-        print(row['Symbol'])
-        sleep(1)
+        try:
+            print(row['Id'])
+            df = GetData(row['Symbol'])
+            df['CompanyId'] = row['Id']
+            #df['Returns'] = df['Close'].pct_change(1)
+            #df['Cumulative Return'] = (1 + df['Returns']).cumprod()
+            df['Date'] = df.index 
+            InsertData(df)
+            print(row['Symbol'])
+            sleep(1)
+        except Exception as e:
+            print('error',e)
+
 except Exception as e:
     print('error',e)
 finally:
