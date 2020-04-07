@@ -18,45 +18,16 @@ df_TATAELXSI.set_index('Date',inplace=True)
 df_WIPRO.set_index('Date',inplace=True)
 df_INFY.set_index('Date',inplace=True)
 
-#Monte Carlo Simulation for Optimization Search
-
+#Get only Adj Close of Stock
 stocks = pd.concat([df_HCL['Adj Close'],df_INFY['Adj Close'],df_TATAELXSI['Adj Close'],df_WIPRO['Adj Close']],axis=1)
 stocks.columns = ['HCL','Infy','TataElxsi','Wipro']
 
-#Mean of Daily Return
-mean_daily_ret = stocks.pct_change(1).mean()
-print("Mean Daily Return= {}".format(mean_daily_ret))
-
-#correlation again each other
-print(stocks.pct_change(1).corr())
-
-stock_normed = stocks/stocks.iloc[0]
-#stock_normed.plot()
-
-#Daily Return
-stock_daily_ret = stocks.pct_change(1)
-
-#Log return
+#log return of stocks
 log_ret = np.log(stocks/stocks.shift(1))
-log_ret.hist(bins=100,figsize=(12,6));
-plt.tight_layout()
 
-print(log_ret.describe().transpose())
-
-# Compute pairwise covariance of columns
-print(log_ret.cov())
-print(log_ret.cov()*252) # multiply by days
-#plt.show()
-
-print('')
 print('Single Run for Some Random Allocation')
 # Set seed (optional)
 np.random.seed(101)
-
-# Stock Columns
-print('Stocks')
-print(stocks.columns)
-print('\n')
 
 # Create Random Weights
 print('Creating Random Weights')

@@ -26,6 +26,7 @@ stocks.columns = ['HCL','Infy','TataElxsi','Wipro']
 #Log return
 log_ret = np.log(stocks/stocks.shift(1))
 
+#Simulating Thousands of Possible Allocations
 num_ports = 5000
 
 #Craete Empty Array to Hold values.
@@ -37,30 +38,22 @@ sharpe_arr = np.zeros(num_ports)
 np.random.seed(101)
 
 for ind in range(num_ports):
-    
-    # Create Random Weights
     weights = np.array(np.random.random(4))
-
-    # Rebalance Weights
     weights = weights / np.sum(weights)
-    
-    # Save Weights
     all_weights[ind,:] = weights
-
-    # Expected Return
     ret_arr[ind] = np.sum((log_ret.mean() * weights) *252)
-
-    # Expected Variance
     vol_arr[ind] = np.sqrt(np.dot(weights.T, np.dot(log_ret.cov() * 252, weights)))
-
-    # Sharpe Ratio
     sharpe_arr[ind] = ret_arr[ind]/vol_arr[ind]
 
+#get max possible sharpe ratio value
 print(sharpe_arr.max())
 
+#get index value for max sharpe ratio
 print(sharpe_arr.argmax())
 
+#best posible allocation
 print(all_weights[2329,:])
+
 max_sr_ret = ret_arr[2329]
 max_sr_vol = vol_arr[2329]
 

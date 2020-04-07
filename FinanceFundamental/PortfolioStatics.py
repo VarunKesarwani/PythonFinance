@@ -4,6 +4,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 import PortfolioAllocation as pa
 
+stocks = pd.concat([pa.df_HCL['Adj Close'],pa.df_INFY['Adj Close'],pa.df_TATAELXSI['Adj Close'],pa.df_WIPRO['Adj Close']],axis=1)
+stocks.columns = ['HCL','Infy','TataElxsi','Wipro']
 
 #Total Portfolio Value
 portfolio_val = pa.Total_Pos_Val(isPlot=False)
@@ -32,7 +34,23 @@ def std_dail_return():
     ret= portfolio_val['Daily Return'].std()
     print('Std Dail Return = {}'.format(ret))
 
+def stock_correlation():
+    print(stocks.pct_change(1).corr())
+
+def log_return():
+    log_ret = np.log(stocks/stocks.shift(1))
+    print(log_ret.describe().transpose())
+    log_ret.hist(bins=100,figsize=(12,6));
+    plt.tight_layout()
+
+def pair_wise_covariance():
+    log_ret = np.log(stocks/stocks.shift(1))
+    print(log_ret.cov())
+    print(log_ret.cov()*252) # multiply by number of working days in a year
+
 if __name__ == '__main__':
-    dail_return(isPlot = True)
+    #stock_correlation()
+    #dail_return(isPlot = True)
     #cummulative_return()
+    pair_wise_covariance()
     plt.show()

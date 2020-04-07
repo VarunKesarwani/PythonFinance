@@ -21,12 +21,13 @@ df_INFY.set_index('Date',inplace=True)
 #Normalize Prices
 for stock_df in (df_HCL,df_TATAELXSI,df_WIPRO,df_INFY):
     stock_df['Normed Return'] = stock_df['Adj Close']/stock_df.iloc[0]['Adj Close']
+    print(stock_df)
 
 #Allocations
 # HCL 20%, Infy 30%, Wipro 30%, TataElxsi 20%
 for stock_df,allo in zip([df_HCL,df_TATAELXSI,df_WIPRO,df_INFY],[.2,.2,.3,.3]):
     stock_df['Allocation'] = stock_df['Normed Return']*allo
-#print(df_HCL.head())
+    print(stock_df)
 
 #Individual Portfolio Value
 # if i had invested 1,00,000
@@ -61,9 +62,11 @@ def plotGraph():
     df_WIPRO['Adj Close'].pct_change(1).plot(kind='kde',label='WIPRO')
     df_TATAELXSI['Adj Close'].pct_change(1).plot(kind='kde',label='TATAELXSI')
 
-
 if __name__ == '__main__':
-    Total_Pos_Val(isPlot=True)
-    plotGraph()
+    #stock_correlation()
+    #log_return()
+    pair_wise_covariance()
+    #Total_Pos_Val(isPlot=True)
+    #plotGraph()
     plt.legend()
     plt.show()
