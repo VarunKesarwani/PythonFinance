@@ -54,23 +54,21 @@ try:
     def GetData(value):
         str_Start = dt.datetime(2020,4,5)
         str_end = dt.datetime(2020,4,7)
-        return web.DataReader(value,'yahoo',str_Start,str_end)
+        return web.DataReader(value,'yahoo',start,end)
         
     def InsertData(data):
         data.to_sql(name='CompanyDailyData', con=engine, if_exists = 'append', index=False)
 
     for row_index,row in df[['Id','Symbol']].iterrows():
         try:
-            if row['Id'] == 67601:
-                print(row['Id'])
-                df = GetData(row['Symbol'])
-                df['CompanyId'] = row['Id']
-                #df['Returns'] = df['Close'].pct_change(1)
-                #df['Cumulative Return'] = (1 + df['Returns']).cumprod()
-                df['Date'] = df.index 
-                InsertData(df)
-                print(row['Symbol'])
-                sleep(1)
+            #if (row['Id'] != 144801) or (row['Id'] != 67601):
+            print(row['Id'])
+            df = GetData(row['Symbol'])
+            df['CompanyId'] = row['Id']
+            df['Date'] = df.index 
+            InsertData(df)
+            print(row['Symbol'])
+            sleep(1)
         except Exception as e:
             print('error',e)
 

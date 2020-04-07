@@ -40,13 +40,19 @@ ax1 = plt.subplot2grid((6,1),(0,0),rowspan=4,colspan=1)
 ax2 = plt.subplot2grid((6,1),(4,0),rowspan=2,colspan=1,sharex=ax1)
 ax1.grid(True)
 
-candlestick_ohlc(ax1, ohlc.values, width=.6, colorup='green', colordown='red')
-ax1.xaxis.set_major_formatter(mdates.DateFormatter('%Y-%m'))
+candlestick_ohlc(ax1, ohlc.values, width=.6, colorup='#77d879', colordown='#db3f3f')
+
 #ax2.fill_between(df_Volume.index.map(mdates.date2num),df_Volume.values,0)
+
+
 ax2.bar(df_Volume.index,df_Volume)
 ax2.axes.yaxis.set_ticklabels([])
+for label in ax2.xaxis.get_ticklabels():
+        label.set_rotation(45)
+
+plt.xlabel('Date')
+plt.ylabel('Price')
 
 plt.setp(ax1.get_xticklabels(),visible=False)
-#plt.tight_layout()
 plt.subplots_adjust(left=.09,bottom=.18,right=.94,top=.94,wspace=.20,hspace=0)
 plt.show()
