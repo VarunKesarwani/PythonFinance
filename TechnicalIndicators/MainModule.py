@@ -1,10 +1,32 @@
-from Technical_Indicators import *
-#from Tech__Indicator2 import RSI
 import pandas as pd
 import matplotlib.pyplot as plt
 import pyodbc
 import datetime as dt
 import matplotlib.dates as mdates
+import numpy as np
+
+def RSI(series, n=14):
+    deltas = np.diff(series)
+    seed = deltas[:n-1]
+    up = seed[seed>0].sum()/n
+    down = -seed[seed<0].sum()/n
+    rs= up/down
+    rsi = np.zeros_like(series)
+    rsi[:n]=100. - 100./(1. +rs)
+    for i in range(n,len(series)):
+        delta = deltas[i-1]
+        if delta >0:
+            upval = delta
+            downval = 0.
+        else:
+            upval = 0.
+            downval = delta
+        up = (up*(n-1)+upval)/n
+        down =(down(n-1)+downval)/n
+        rs= up/down
+        rsi[i] = 100. - 100./(1. +rs)
+    return rsi
+
 
 conn = pyodbc.connect('Driver={ODBC Driver 17 for SQL Server};'
                       'Server=.\SQLEXPRESS;'
@@ -12,19 +34,13 @@ conn = pyodbc.connect('Driver={ODBC Driver 17 for SQL Server};'
                       'UID=sa; PWD=varun@17;')
 symbol = 'WIPRO'
 
-df_Stock = pd.read_sql("Select D.[Date],D.[Open], D.[Close], D.[High], D.[Low] from CompanyDailyData D(nolock) inner join Company C(nolock) on D.CompanyId = C.Id  where C.Symbol = '{}'".format(symbol), conn)
-df_Stock['Date'] = pd.to_datetime(df_Stock['Date'])
+df_Stock = pd.read_sql("Select D.[Date] as DateVal,D.[Open], D.[Close], D.[High], D.[Low],D.[Adj Close], D.[Volume] from CompanyDailyData D(nolock) inner join Company C(nolock) on D.CompanyId = C.Id  where C.Symbol = '{}'".format(symbol), conn)
+df_Stock['DateVal'] = pd.to_datetime(df_Stock['DateVal'])
 
-#df_Stock['Date'] = df_Stock['Date'].map(mdates.date2num)
+df_Stock['Date'] = df_Stock['DateVal'].map(mdates.date2num)
 
 df_Stock.set_index('Date',inplace=True)
-#print(df_Stock)
+df_ohlc = df_Stock[['Open','High','Low','Close']]
 
-RSI_date = dt.datetime(2020,3,15)
-df_MA = moving_average(df_Stock,14)
-
-df_momentum = momentum(df_Stock,14)
-
-df_ATR = average_true_range(df_Stock,14)
-
-print(df_ATR)
+res = RSI(df_ohlc,14)
+print(res)

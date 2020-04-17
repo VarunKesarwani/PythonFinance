@@ -4,8 +4,8 @@ import requests
 import re
 import os
 
-symbol = 'HCLTECH'
-filename = 'DB/fundamentalData_'+symbol+'.pickle'
+symbol = 'ITC'
+filename = 'DB/screener_Data_'+symbol+'.pickle'
 
 def get_fundamental_Data():
     try:
@@ -36,7 +36,7 @@ def get_fundamental_Data():
             pros = innerDiv.find(name="div",attrs= {'class':'six columns callout success'}).text
             tickers.append(pros)
             cons = innerDiv.find(name="div",attrs= {'class':'six columns callout warning'}).text
-            tickers.append()
+            tickers.append(cons)
 
             with open(filename,"wb") as f:
                 pickle.dump(tickers,f)

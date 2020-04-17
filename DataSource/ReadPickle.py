@@ -4,8 +4,8 @@ import requests
 import os
 import pandas as pd
 
-symbol = 'HCLTECH'
-filename = 'DB/fundamentalData_'+symbol+'.pickle'
+symbol = 'ITC'
+filename = 'DB/finology_fundamental_'+symbol+'.pickle'
 
 def read_pickel():
     with open(filename,"rb") as f:

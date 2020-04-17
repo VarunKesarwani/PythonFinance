@@ -1,0 +1,126 @@
+import pandas as pd
+import pyodbc
+import numpy as np
+import matplotlib.pyplot as plt
+import matplotlib as style
+from mpl_finance import candlestick_ohlc
+import matplotlib.dates as mdates
+import matplotlib.ticker as mticker
+
+conn = pyodbc.connect('Driver={ODBC Driver 17 for SQL Server};'
+                        'Server=.\SQLEXPRESS;'
+                        'Database=ShareData;'
+                        'UID=sa; PWD=varun@17;')
+
+symbol = 'INFY'
+resample='N'
+
+def get_Stock_Data():
+    query = "Select D.[Date] as DateValue,C.Symbol, D.[Open], D.[Close], D.[High], D.[Low], D.[Adj Close],D.[Volume] from CompanyDailyData D(nolock) inner join Company C(nolock) on D.CompanyId = C.Id  where C.Symbol = '{}'".format(symbol)
+    df = pd.read_sql(query, conn)
+
+    df['DateValue'] = pd.to_datetime(df['DateValue'])
+    df.set_index(df['DateValue'],inplace=True)
+
+    df_ohlc = pd.DataFrame()
+    df_Volume = pd.DataFrame()
+
+    if resample=='Y':
+        df_ohlc = df['Adj Close'].resample(rule='10d').ohlc()
+        df_Volume = df['Volume'].resample('10d').sum()
+        df_ohlc.columns = ['Open', 'High', 'Low','Close']
+    else:
+        df_ohlc = df[['Open','High','Low','Close','Adj Close']]
+        df_Volume = df['Volume']
+
+    df_ohlc['Date'] = df['DateValue'].map(mdates.date2num)
+    df_ohlc.reset_index(inplace=True)
+    return df_ohlc,df_Volume
+
+def simple_move_avg(sma_data,n):
+    data = sma_data.copy()
+    if resample =='Y':
+        data[str(n)+' days SMA'] = data['Close'].rolling(window=n).mean()
+    else:
+        data[str(n)+' days SMA'] = data['Adj Close'].rolling(window=n).mean()
+    data['DateValue'] = pd.to_datetime(data['DateValue'])
+    data.set_index(data['DateValue'],inplace=True)
+    #return data[['DateValue',str(n)+' days SMA']].dropna()
+    return data[str(n)+' days SMA'].dropna()
+
+def movingaverage(value,n):
+    weights = np.repeat(1.0,n)/n
+    smas= np.convolve(value,weights,'valid')
+    return smas
+
+def RSI(prices, n=14):
+    deltas = np.diff(prices)
+    seed = deltas[:n+1]
+    up = seed[seed>=0].sum()/n
+    down = -seed[seed<0].sum()/n
+    rs= up/down
+    rsi = np.zeros_like(prices)
+    rsi[:n]=100. - 100./(1. +rs)
+    for i in range(n,len(prices)):
+        delta = deltas[i-1]
+        if delta >0:
+            upval = delta
+            downval = 0.
+        else:
+            upval = 0.
+            downval = delta
+        up = (up*(n-1)+upval)/n
+        down =(down*(n-1)+downval)/n
+        rs= up/down
+        rsi[i] = 100. - 100./(1. +rs)
+    return rsi    
+
+df_ohlc,df_Volume = get_Stock_Data()
+
+ohlc= df_ohlc[['Date', 'Open', 'High', 'Low','Close']].copy()
+
+n1 = 50
+n2 = 100
+
+Av1 = movingaverage(df_ohlc['Close'],n1)
+AV2= pd.DataFrame(simple_move_avg(df_ohlc,n2))
+SP = len(df_ohlc['DateValue'][n1-1:])
+
+rsi_res = RSI(df_ohlc['Close'],n=26)
+#print(rsi_res)
+
+label1 = str(n1)+' days SMA'
+label2 = str(n2)+' days SMA'
+#plot
+fig = plt.figure()
+
+ax0 =plt.subplot2grid((5,4),(0,0),rowspan=1,colspan=4)
+ax0.plot(df_ohlc['DateValue'],rsi_res)
+ax0.spines['bottom'].set_color("#5998ff")
+ax0.spines['top'].set_color("#5998ff")
+ax0.spines['left'].set_color("#5998ff")
+ax0.spines['right'].set_color("#5998ff")
+plt.gca().yaxis.set_major_locator(mticker.MaxNLocator(prune='lower'))
+plt.ylabel("RSI")
+plt.title(symbol)
+
+ax1 = plt.subplot2grid((5,4),(1,0),rowspan=4,colspan=4)
+candlestick_ohlc(ax1, ohlc.values, width=.6, colorup='#77d879', colordown='#db3f3f')
+ax1.plot(df_ohlc['DateValue'][-SP:],Av1[-SP:],color="#5998ff",label=label1,linewidth=1.5)
+ax1.plot(AV2.index,AV2[str(n2)+' days SMA'],color="#0EEDF9",label=label2,linewidth=1.5)
+ax1.plot()
+ax1.grid(True)
+plt.ylabel('Price')
+
+plt.legend(prop={'size':7})
+for label in ax1.xaxis.get_ticklabels():
+        label.set_rotation(45)
+
+ax1v = ax1.twinx()
+ax1v.bar(df_Volume.index,df_Volume)
+ax1v.set_ylim(0,2*df_Volume.max())
+ax1v.grid(False)
+
+#plt.setp(ax1.get_xticklabels(),visible=False)
+plt.subplots_adjust(left=.09,bottom=.18,right=.94,top=.94,wspace=.20,hspace=0)
+plt.show()
