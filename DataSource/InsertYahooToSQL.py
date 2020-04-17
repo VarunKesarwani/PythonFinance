@@ -57,7 +57,7 @@ try:
         return web.DataReader(value,'yahoo',start,end)
         
     def InsertData(data):
-        data.to_sql(name='CompanyDailyData', con=engine, if_exists = 'append', index=False)
+        data.to_sql(name='CompanyDailyPriceData', con=engine, if_exists = 'append', index=False)
 
     for row_index,row in df[['Id','Symbol']].iterrows():
         try:

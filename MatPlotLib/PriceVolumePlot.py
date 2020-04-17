@@ -10,7 +10,7 @@ conn = pyodbc.connect('Driver={ODBC Driver 17 for SQL Server};'
                       'UID=sa; PWD=varun@17;')
 symbol = 'WIPRO'
 
-df_Stock = pd.read_sql("Select C.Symbol, D.* from CompanyDailyData D(nolock) inner join Company C(nolock) on D.CompanyId = C.Id  where C.Symbol = '{}'".format(symbol), conn)
+df_Stock = pd.read_sql("Select C.Symbol, D.* from CompanyDailyPriceData D(nolock) inner join Company C(nolock) on D.CompanyId = C.Id  where C.Symbol = '{}'".format(symbol), conn)
 df_Stock['Date'] = pd.to_datetime(df_Stock['Date'])
 df_Stock.set_index('Date',inplace=True)
 

@@ -3,6 +3,7 @@ import pickle
 import requests
 import re
 import os
+import datetime as dt
 
 symbol = 'ITC'
 filename = 'DB/finology_data_'+symbol+'.pickle'
@@ -25,8 +26,10 @@ def get_fundamental_Data():
             YearlyHigh = section1.findNext(name="span",attrs={"id":"mainContent_ltrl52WH"}).text
             YearlyLow = section1.findNext(name="span",attrs={"id":"mainContent_ltrl52WL"}).text
 
-            tickers.append('52 Week High:'+YearlyHigh)
-            tickers.append('52 Week Low:'+YearlyLow)
+            tickers.append('Symbol:'+symbol)
+            tickers.append('Date:'+dt.datetime.now().strftime("%Y-%m-%d"))
+            tickers.append('52WeekHigh:'+YearlyHigh)
+            tickers.append('52WeekLow:'+YearlyLow)
             tickers.append(sector_str)
 
             #statements = section1.findNext(name="div",attrs={"class":"card cardscreen cardblue"})
@@ -44,13 +47,14 @@ def get_fundamental_Data():
             #     print(key+':'+value)
             for div in ratios.findAll("div"):
                 key_lst = str(div.findNext(name="small").text).split()
-                key = " ".join(key_lst)
-                value_lst = str(div.findNext(name="p").text).split()
-                value= " ".join(value_lst)
-                tickers.append(key+":"+value)
+                if 'Add your own' not in key_lst:
+                    key = "".join(key_lst)
+                    value_lst = str(div.findNext(name="p").text).split()
+                    value= "".join(value_lst)
+                    tickers.append(key+":"+value)
             
             for item in pros_cons:                
-                key = item.findNext("h4").get_text()
+                key = item.findNext("h4").get_text().replace(" ", "")
                 lst = item.find_next('ul').find_all('li')
                 value = ''
                 for li in lst:
