@@ -6,6 +6,7 @@ import matplotlib as style
 from mpl_finance import candlestick_ohlc
 import matplotlib.dates as mdates
 import matplotlib.ticker as mticker
+import ta
 
 conn = pyodbc.connect('Driver={ODBC Driver 17 for SQL Server};'
                         'Server=.\SQLEXPRESS;'
@@ -53,32 +54,11 @@ def movingaverage(value,n):
     smas= np.convolve(value,weights,'valid')
     return smas
 
-def RSI(prices, n=14):
-    deltas = np.diff(prices)
-    seed = deltas[:n+1]
-    up = seed[seed>=0].sum()/n
-    down = -seed[seed<0].sum()/n
-    rs= up/down
-    rsi = np.zeros_like(prices)
-    rsi[:n]=100. - 100./(1. +rs)
-    for i in range(n,len(prices)):
-        delta = deltas[i-1]
-        if delta >0:
-            upval = delta
-            downval = 0.
-        else:
-            upval = 0.
-            downval = delta
-        up = (up*(n-1)+upval)/n
-        down =(down*(n-1)+downval)/n
-        rs= up/down
-        rsi[i] = 100. - 100./(1. +rs)
-    return rsi    
-
 df_ohlc,df_Volume = get_Stock_Data()
 
 ohlc= df_ohlc[['Date', 'Open', 'High', 'Low','Close']].copy()
 
+rsi =  ta.momentum.RSIIndicator(close=ohlc["Close"], n= 14, fillna= True)
 n1 = 50
 n2 = 100
 
@@ -86,7 +66,7 @@ Av1 = movingaverage(df_ohlc['Close'],n1)
 AV2= pd.DataFrame(simple_move_avg(df_ohlc,n2))
 SP = len(df_ohlc['DateValue'][n1-1:])
 
-rsi_res = RSI(df_ohlc['Close'],n=26)
+rsi_res = rsi.rsi()
 #print(rsi_res)
 
 label1 = str(n1)+' days SMA'
