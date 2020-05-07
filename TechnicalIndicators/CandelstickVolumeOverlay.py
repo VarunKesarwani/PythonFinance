@@ -95,7 +95,10 @@ label2 = str(n2)+' days SMA'
 fig = plt.figure()
 
 ax0 =plt.subplot2grid((5,4),(0,0),rowspan=1,colspan=4)
-ax0.plot(df_ohlc['DateValue'],rsi_res)
+rsiColor="#00ffe8"
+ax0.plot(df_ohlc['DateValue'][-SP:],rsi_res[-SP:])
+ax0.axhline(70,color=rsiColor)
+ax0.axhline(30,color=rsiColor)
 ax0.spines['bottom'].set_color("#5998ff")
 ax0.spines['top'].set_color("#5998ff")
 ax0.spines['left'].set_color("#5998ff")
@@ -103,6 +106,7 @@ ax0.spines['right'].set_color("#5998ff")
 plt.gca().yaxis.set_major_locator(mticker.MaxNLocator(prune='lower'))
 plt.ylabel("RSI")
 plt.title(symbol)
+
 
 ax1 = plt.subplot2grid((5,4),(1,0),rowspan=4,colspan=4)
 candlestick_ohlc(ax1, ohlc.values, width=.6, colorup='#77d879', colordown='#db3f3f')
@@ -120,6 +124,7 @@ ax1v = ax1.twinx()
 ax1v.bar(df_Volume.index,df_Volume)
 ax1v.set_ylim(0,2*df_Volume.max())
 ax1v.grid(False)
+
 
 #plt.setp(ax1.get_xticklabels(),visible=False)
 plt.subplots_adjust(left=.09,bottom=.18,right=.94,top=.94,wspace=.20,hspace=0)
