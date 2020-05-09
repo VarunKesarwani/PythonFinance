@@ -71,6 +71,7 @@ rsi_res = rsi.rsi()
 
 label1 = str(n1)+' days SMA'
 label2 = str(n2)+' days SMA'
+
 #plot
 fig = plt.figure()
 
