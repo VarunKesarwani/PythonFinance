@@ -1,0 +1,1 @@
+GET http://niftyindices.com/IndexConstituent/ind_Nifty50_Value20.csv HTTP/1.1
