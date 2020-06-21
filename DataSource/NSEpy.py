@@ -1,17 +1,92 @@
 from datetime import date
+import pandas as pd
 from nsepy import get_history
 from nsepy import get_history
 from nsepy.history import get_price_list
 from nsepy import get_index_pe_history  
 from nsepy.derivatives import get_expiry_date
+from sqlalchemy import create_engine
+from datetime import datetime
+from dateutil.relativedelta import relativedelta
 
 
-sbin = get_history(symbol='SBIN',
-                   start=date(2015,1,1),
-                   end=date(2020,6,19))
-print(sbin.tail())
+DB = {'servername': '.\SQLEXPRESS', 'database': 'ShareData', 'driver': 'driver=SQL Server Native Client 11.0'}
+
+engine = create_engine('mssql+pyodbc://' + DB['servername'] + '/' + DB['database'] + "?" + DB['driver'])
+
+def get_symbol():
+    query = "SELECT [Id] as CompanyId,[Symbol] as Symbol FROM [dbo].[Company] (nolock) Where IsActive = 1 and Symbol in('TCS')"
+    df_comp = pd.read_sql(query,engine)
+    return df_comp
+
+def get_index():
+    query = "Select ID as IndexId, IndexName,IndexNameOnReport from IndexDetails"
+    df_index = pd.read_sql(query,engine)
+    return df_index
+
+def InsertData(data):
+    data.to_sql(name='CompanyDailyPriceData', con=engine, if_exists = 'append', index=True)
+    print('Data inserted!!')
+
+def getIndexPrice():
+    df_index = get_index()
+    for row in df_comp[['IndexId','IndexName']].iterrows():
+        try:
+            result = row[1]
+            index_id = int(result.get(key = 'IndexId'))
+            index_name = str(result.get(key = 'IndexName'))
+            startDt = datetime.now().date()- relativedelta(years=1)
+            endDt = datetime.today().date() 
+            get_history(symbol=index_name,start=date(startDt.year,startDt.month,startDt.day),end=date(endDt.year,endDt.month,endDt.day),index=True)
 
 
+
+def getHistoryPrice():
+    df_comp = get_symbol()
+    for row in df_comp[['CompanyId','Symbol']].iterrows():
+        try:
+            result = row[1]
+            symbol_name = str(result.get(key = 'Symbol'))
+            startDt = datetime.now().date()- relativedelta(years=1)
+            endDt = datetime.today().date() 
+            df_prices = get_history(symbol=symbol_name,start=date(startDt.year,startDt.month,startDt.day),end=date(endDt.year,endDt.month,endDt.day))
+            df_prices['CompanyId'] = int(result.get(key = 'CompanyId'))
+            df_prices_new = df_prices[['CompanyId','Open','High','Low','Close','Volume','Last']].copy()
+            df_prices_new.columns=['CompanyId','Open','High','Low','Close','Volume','Adj Close']
+            InsertData(df_prices_new)
+        except Exception as e:
+            print('error',e)
+
+def getDerivativeHistoryPrice():
+    df_comp = get_symbol()
+    for row in df_comp[['CompanyId','Symbol']].iterrows():
+        try:
+            result = row[1]
+            symbol_name = str(result.get(key = 'Symbol'))
+            company_id = int(result.get(key = 'CompanyId'))
+            startDt = datetime.now().date()- relativedelta(month=1)
+            endDt = datetime.today().date() 
+
+            expiry = get_expiry_date(year=endDt.year, month=endDt.month)
+
+            df_prices = get_history(
+            symbol=symbol_name
+            ,start=date(startDt.year,startDt.month,startDt.day)
+            ,end=date(endDt.year,endDt.month,endDt.day)
+            ,futures=True
+            ,expiry_date=date(expiry.year,expiry.month,expiry.day))
+
+            df_prices['CompanyId'] = company_id
+            df_prices_new = df_prices[['CompanyId','Open','High','Low','Close','Volume','Last']].copy()
+            df_prices_new.columns=['CompanyId','Open','High','Low','Close','Volume','Adj Close']
+            print(df_prices)
+        except Exception as e:
+            print('error',e)
+      
+
+getHistoryPrice()
+
+'''
 
 # Stock options (Similarly for index options, set index = True)
 stock_fut = get_history(symbol="SBIN",
@@ -54,3 +129,5 @@ stock_fut_exp = get_history(symbol="SBIN",
 
 # Daily Bhav Copy
 prices = get_price_list(dt=date(2015,1,1))
+
+'''
