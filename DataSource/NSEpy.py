@@ -20,7 +20,7 @@ def get_symbol():
     return df_comp
 
 def get_index():
-    query = "Select ID as IndexId, IndexName,IndexNameOnReport from IndexDetails"
+    query = "Select top 1 ID as IndexId, IndexName,IndexNameOnReport from IndexDetails"
     df_index = pd.read_sql(query,engine)
     return df_index
 
@@ -30,15 +30,22 @@ def InsertData(data):
 
 def getIndexPrice():
     df_index = get_index()
-    for row in df_comp[['IndexId','IndexName']].iterrows():
+    for row in df_index[['IndexId','IndexName']].iterrows():
         try:
             result = row[1]
             index_id = int(result.get(key = 'IndexId'))
             index_name = str(result.get(key = 'IndexName'))
-            startDt = datetime.now().date()- relativedelta(years=1)
+            startDt = datetime.now().date()- relativedelta(months=1)
             endDt = datetime.today().date() 
-            get_history(symbol=index_name,start=date(startDt.year,startDt.month,startDt.day),end=date(endDt.year,endDt.month,endDt.day),index=True)
-
+            print(index_id,index_name,startDt,endDt)
+            df_web = get_history(symbol=index_name,
+                                start=date(startDt.year,startDt.month,startDt.day),
+                                end=date(endDt.year,endDt.month,endDt.day),
+                                index=True)
+            df_web["IndexId"] = index_id
+            print(df_web.head())
+        except Exception as e:
+            print('error',e)
 
 
 def getHistoryPrice():
@@ -64,28 +71,29 @@ def getDerivativeHistoryPrice():
             result = row[1]
             symbol_name = str(result.get(key = 'Symbol'))
             company_id = int(result.get(key = 'CompanyId'))
-            startDt = datetime.now().date()- relativedelta(month=1)
-            endDt = datetime.today().date() 
 
-            expiry = get_expiry_date(year=endDt.year, month=endDt.month)
+            endDt = datetime.now().date() 
 
-            df_prices = get_history(
-            symbol=symbol_name
-            ,start=date(startDt.year,startDt.month,startDt.day)
-            ,end=date(endDt.year,endDt.month,endDt.day)
-            ,futures=True
-            ,expiry_date=date(expiry.year,expiry.month,expiry.day))
+            previousExipry = max(get_expiry_date(year=endDt.year, month=(endDt.month-1)))
+            currentExpiry = max(get_expiry_date(year=endDt.year, month=endDt.month))
 
+            print(company_id,symbol_name,endDt,previousExipry,currentExpiry)
+            
+            df_prices = get_history(symbol='TCS',
+                                    start=date(previousExipry.year,previousExipry.month,(previousExipry.day+1)),
+                                    end=date(endDt.year,endDt.month,endDt.month),
+                                    futures=True,
+                                    expiry_date=date(currentExpiry.year,currentExpiry.month,currentExpiry.day))
             df_prices['CompanyId'] = company_id
-            df_prices_new = df_prices[['CompanyId','Open','High','Low','Close','Volume','Last']].copy()
-            df_prices_new.columns=['CompanyId','Open','High','Low','Close','Volume','Adj Close']
-            print(df_prices)
+            print(df_prices.head())
         except Exception as e:
             print('error',e)
       
 
 getHistoryPrice()
-
+#
+#getIndexPrice()
+#getDerivativeHistoryPrice()
 '''
 
 # Stock options (Similarly for index options, set index = True)

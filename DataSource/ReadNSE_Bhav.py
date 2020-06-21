@@ -182,14 +182,23 @@ def getIndexData(tradingDate):
     
     
 
+#refresh company list
+nse_company_details_get()
 
-#nse_company_details_get()
+#refresh company detail list
+get_companyDetails()
+
+#save todays BhavanaCopy
 df_bhavacopy = download_bhava_copy()
-#print(df_bhavacopy)
-#download_derivative_extract_zip(df_bhavacopy)
+print(df_bhavacopy)
+
+#save todays FUT price copy
+download_derivative_extract_zip(df_bhavacopy)
+
 #get_yahooData(df_bhavacopy)
-#get_companyDetails()
-getIndexData(df_bhavacopy)
+
+#get index data csv
+#getIndexData(df_bhavacopy)
 
 print('Process Completed!!!')
 
