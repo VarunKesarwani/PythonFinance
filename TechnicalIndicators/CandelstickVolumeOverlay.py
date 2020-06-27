@@ -13,7 +13,7 @@ conn = pyodbc.connect('Driver={ODBC Driver 17 for SQL Server};'
                         'Database=ShareData;'
                         'UID=sa; PWD=Bally@123;')
 
-symbol = 'VOLTAS'
+symbol = 'BHARTIARTL'
 resample='N'
 
 def get_Stock_Data():
